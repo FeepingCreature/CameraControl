@@ -1,0 +1,50 @@
+Camera Control Mod
+
+* controller block subclasses camera
+* each block can store one shot
+* each shot is of the form "Direction" or "LookAt"
+* each shot contains for a set of parameters,
+  * position (includes up vector)
+  * direction
+  * lookat
+* a series of generating functions, so that for each time a value for each parameter can be determined.
+* internally, for each parameter there is a series of keyframes,
+  each of which is a function returning the current state of the parameter,
+  each with a transition indicating how to interpolate between it and the following keyframe,
+  stored as
+  * mode: locked, free
+  * entity id if locked
+  * value (local if locked, global if free)
+  * transition
+* typical transitions:
+  * linear
+  * cosine
+  * spline ( https://en.wikipedia.org/wiki/Cubic_Hermite_spline )
+* a parameter that has no keyframes is not controlled by the block.
+* the block state encompasses the following:
+  * current frame
+  * current mode (playing, paused)
+  * current spline mode
+  * current locked grid
+  * list of keyframes
+* when playing back, each frame the mod applies its stored parameters to the grid the block is in.
+
+NOTES:
+
+Feep - Heute um 10:37 Uhr
+thanks
+Phoera - Heute um 10:38 Uhr
+
+        public static HitInfo<IMyEntity> Raycast(this IMyPhysics phy, ref LineD line)
+        {
+            IHitInfo hit;
+            if (phy.CastRay(line.From, line.To, out hit))
+                return new HitInfo<IMyEntity>(hit.HitEntity, hit.Position);
+            return null;
+        }
+        static List<IHitInfo> tmpHits = new List<IHitInfo>();
+        public static void RaycastAll(this IMyPhysics phy, ref LineD line, List<HitInfo<IMyEntity>> result)
+        {
+            phy.CastRay(line.From, line.To, tmpHits);
+            result.AddRange(tmpHits.Select(h => new HitInfo<IMyEntity>(h.HitEntity, h.Position)));
+        }
