@@ -440,9 +440,6 @@ static class CameraUI
     public static IMyTerminalAction nextKeyFrameAction, prevKeyFrameAction;
     public static IMyTerminalAction playAction, pauseAction, playPauseAction, stopAction;
     public static IMyTerminalAction setFrameAction, setPosFrameAction, setViewFrameAction, delKeyframeAction, toggleKeyframeModeAction;
-    public static IMyTerminalAction lockViewAction, lockPosAction;
-    /*public static IMyTerminalControlSlider forceSlider, heightSlider;
-    public static IMyTerminalControlOnOffSwitch powerSwitch;*/
 
     public static bool BlockIsMyCamera(IMyTerminalBlock block)
     {
@@ -793,62 +790,6 @@ static class CameraUI
         lockPosAction.Writer = ConditionToggleWriterGen((cam) => cam.pos_locked_to != null, "PTgt");
         MyAPIGateway.TerminalControls.AddAction<IMyCameraBlock>(lockPosAction);
 
-        /*
-		kept from hoverrail as example code
-                powerSwitch = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlOnOffSwitch, IMyTerminalBlock>("HoverRail_OnOff");
-                powerSwitch.Title = MyStringId.GetOrCompute("Maglev Engine");
-                powerSwitch.Tooltip = MyStringId.GetOrCompute("Enable to apply force to stick to the track.");
-                powerSwitch.Getter = b => (bool)SettingsStore.Get(b, "power_on", true);
-                powerSwitch.Setter = (b, v) => SettingsStore.Set(b, "power_on", v);
-                powerSwitch.SupportsMultipleBlocks = true;
-                powerSwitch.OnText = MyStringId.GetOrCompute("On");
-                powerSwitch.OffText = MyStringId.GetOrCompute("Off");
-                powerSwitch.Visible = BlockIsEngine;
-                MyAPIGateway.TerminalControls.AddControl<IMyTerminalBlock>(powerSwitch);
-
-                forceSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyTerminalBlock>("HoverRail_ForceLimit");
-                forceSlider.Title = MyStringId.GetOrCompute("Force Limit");
-                forceSlider.Tooltip = MyStringId.GetOrCompute("The amount of force applied to align this motor with the track.");
-                forceSlider.SetLogLimits(10000.0f, 50000000.0f);
-                forceSlider.SupportsMultipleBlocks = true;
-                forceSlider.Getter = b => (float)SettingsStore.Get(b, "force_slider", 100000.0f);
-                forceSlider.Setter = (b, v) => SettingsStore.Set(b, "force_slider", (float)LogRound(v));
-                forceSlider.Writer = (b, result) => result.Append(String.Format("{0}N", SIFormat((float)SettingsStore.Get(b, "force_slider", 100000.0f))));
-                forceSlider.Visible = BlockIsEngine;
-                MyAPIGateway.TerminalControls.AddControl<IMyTerminalBlock>(forceSlider);
-
-                heightSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyTerminalBlock>("HoverRail_HeightOffset");
-                heightSlider.Title = MyStringId.GetOrCompute("Height Offset");
-                heightSlider.Tooltip = MyStringId.GetOrCompute("The height we float above the track.");
-                heightSlider.SetLimits(0.1f, 2.5f);
-                heightSlider.SupportsMultipleBlocks = true;
-                heightSlider.Getter = b => (float)SettingsStore.Get(b, "height_offset", 1.25f);
-                heightSlider.Setter = (b, v) => SettingsStore.Set(b, "height_offset", (float)Math.Round(v, 1));
-                heightSlider.Writer = (b, result) => result.Append(String.Format("{0}m", (float)SettingsStore.Get(b, "height_offset", 1.25f)));
-                heightSlider.Visible = BlockIsEngine;
-                MyAPIGateway.TerminalControls.AddControl<IMyTerminalBlock>(heightSlider);
-
-                lowerHeightAction = MyAPIGateway.TerminalControls.CreateAction<IMyTerminalBlock>("HoverRailEngine_LowerHeight0.1");
-                lowerHeightAction.Name = new StringBuilder("Lower Height");
-                lowerHeightAction.Action = LowerHeightAction;
-                lowerHeightAction.Writer = (block, builder) =>
-                {
-                    builder.Clear();
-                    builder.Append(String.Format("{0} -", (float)SettingsStore.Get(block, "height_offset", 1.25f)));
-                };
-                MyAPIGateway.TerminalControls.AddAction<IMyTerminalBlock>(lowerHeightAction);
-
-                raiseHeightAction = MyAPIGateway.TerminalControls.CreateAction<IMyTerminalBlock>("HoverRailEngine_RaiseHeight0.1");
-                raiseHeightAction.Name = new StringBuilder("Raise Height");
-                raiseHeightAction.Action = RaiseHeightAction;
-                raiseHeightAction.Writer = (block, builder) =>
-                {
-                    builder.Clear();
-                    builder.Append(String.Format("{0} +", (float)SettingsStore.Get(block, "height_offset", 1.25f)));
-                };
-                MyAPIGateway.TerminalControls.AddAction<IMyTerminalBlock>(raiseHeightAction);
-
-        */
         MyAPIGateway.TerminalControls.CustomActionGetter += GetCameraActions;
     }
 }
