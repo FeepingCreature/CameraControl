@@ -1,13 +1,5 @@
 Camera Control Mod
 
-* controller block subclasses camera
-* each block can store one shot
-* each shot is of the form "Direction" or "LookAt"
-* each shot contains for a set of parameters,
-  * position (includes up vector)
-  * direction
-  * lookat
-* a series of generating functions, so that for each time a value for each parameter can be determined.
 * internally, for each parameter there is a series of keyframes,
   each of which is a function returning the current state of the parameter,
   each with a transition indicating how to interpolate between it and the following keyframe,
@@ -16,10 +8,6 @@ Camera Control Mod
   * entity id if locked
   * value (local if locked, global if free)
   * transition
-* typical transitions:
-  * linear
-  * cosine
-  * spline ( https://en.wikipedia.org/wiki/Cubic_Hermite_spline )
 * a parameter that has no keyframes is not controlled by the block.
 * the block state encompasses the following:
   * current frame
@@ -27,13 +15,17 @@ Camera Control Mod
   * current spline mode
   * current locked grid
   * list of keyframes
-* when playing back, each frame the mod applies its stored parameters to the grid the block is in.
+* range slider for focus depth? important for locking
+* action to set range to target
+
+MVP SET:
+next, prev, play, pause, set pos, set dir
 
 NOTES:
 
-Feep - Heute um 10:37 Uhr
-thanks
-Phoera - Heute um 10:38 Uhr
+when locked on to a grid and no entity on the grid is targetted, use a point on the aabb.
+
+MyAPIGateway.Session.SessionSettings.ViewDistance;
 
         public static HitInfo<IMyEntity> Raycast(this IMyPhysics phy, ref LineD line)
         {
