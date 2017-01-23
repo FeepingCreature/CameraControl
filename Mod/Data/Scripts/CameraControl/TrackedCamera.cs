@@ -92,8 +92,8 @@ public class TrackingCamera : MyGameLogicComponent
 {
     Sandbox.Common.ObjectBuilders.MyObjectBuilder_EntityBase objectBuilder = null;
     bool block_initialized = false;
-    MatrixD OriginalLocalMatrix = MatrixD.Identity;
 
+    public MatrixD OriginalLocalMatrix = MatrixD.Identity;
     public int frame = 0;
     public TransitionMode keyframe_mode = TransitionMode.Spline;
     public bool view_locked = false; // whether we should apply our view
@@ -202,14 +202,18 @@ public class TrackingCamera : MyGameLogicComponent
             shot = Load();
         }
 
-        var proper_worldmat = OriginalLocalMatrix * Entity.Parent.WorldMatrix;
-        var position = proper_worldmat.Translation;
-        var lookat = proper_worldmat.Translation + proper_worldmat.Forward;
-        var upvec = proper_worldmat.Up;
+        MatrixD proper_worldmat = OriginalLocalMatrix * Entity.Parent.WorldMatrix;
+        Vector3D position = Vector3D.Zero;
+        Vector3D lookat = Vector3D.Zero;
+        Vector3D upvec = Vector3D.Zero;
 
         if (!shot.position_timeline.Empty)
         {
             position = shot.position_timeline.Evaluate(frame, false);
+        }
+        else
+        {
+            position = proper_worldmat.Translation;
         }
 
         if (!shot.lookat_timeline.Empty)
@@ -222,10 +226,18 @@ public class TrackingCamera : MyGameLogicComponent
                 lookat = shot.lookat_timeline.Evaluate(frame, false);
             }
         }
+        else
+        {
+            lookat = proper_worldmat.Translation + proper_worldmat.Forward * SettingsStore.Get(Entity, "focus_distance", 1.0f);
+        }
 
         if (!shot.upvec_timeline.Empty)
         {
             upvec = shot.upvec_timeline.Evaluate(frame, true);
+        }
+        else
+        {
+            upvec = proper_worldmat.Up;
         }
 
         // WorldMatrix: Block space -> World space
@@ -333,7 +345,7 @@ public class TrackingCamera : MyGameLogicComponent
     public void SetLookatFrame(TrackingShot shot = null)
     {
         var worldmat = OriginalLocalMatrix * Entity.Parent.WorldMatrix;
-        var target = worldmat.Translation + worldmat.Forward; // TODO range factor
+        var target = worldmat.Translation + worldmat.Forward * SettingsStore.Get(Entity, "focus_distance", 1.0f);
         var info = new TrackingInfo();
         info.Transition = keyframe_mode;
 
@@ -440,6 +452,8 @@ static class CameraUI
     public static IMyTerminalAction nextKeyFrameAction, prevKeyFrameAction;
     public static IMyTerminalAction playAction, pauseAction, playPauseAction, stopAction;
     public static IMyTerminalAction setFrameAction, setPosFrameAction, setViewFrameAction, delKeyframeAction, toggleKeyframeModeAction;
+    public static IMyTerminalAction lockViewAction, lockPosAction, setFocusAction;
+    public static IMyTerminalControlSlider rangeSlider;
 
     public static bool BlockIsMyCamera(IMyTerminalBlock block)
     {
@@ -684,6 +698,32 @@ static class CameraUI
         cam.DeleteKeyframe();
     }
 
+    // set focus setting to view lock entity
+    public static void ActionSetFocusToViewLock(IMyTerminalBlock block)
+    {
+        var cam = block.GameLogic.GetAs<TrackingCamera>();
+        var view_locked_to = cam.view_locked_to;
+
+        if (view_locked_to == null)
+        {
+            MyAPIGateway.Utilities.ShowNotification("Error: cannot set focus to view lock; view not locked!", 2000, MyFontEnum.Red);
+            return;
+        }
+
+        var proper_worldmat = cam.OriginalLocalMatrix * cam.Entity.Parent.WorldMatrix;
+        var dist = (proper_worldmat.Translation - view_locked_to.WorldMatrix.Translation).Length();
+
+        SettingsStore.Set(block, "focus_distance", (float)dist);
+    }
+
+    public static float LogRound(float f)
+    {
+        var logbase = Math.Pow(10, Math.Floor(Math.Log10(f)));
+        var frac = f / logbase;
+        frac = Math.Floor(frac * 10) / 10;
+        return (float)(logbase * frac);
+    }
+
     public static void InitLate()
     {
         initialized = true;
@@ -789,6 +829,23 @@ static class CameraUI
         lockPosAction.Action = ActionLockPosToTarget;
         lockPosAction.Writer = ConditionToggleWriterGen((cam) => cam.pos_locked_to != null, "PTgt");
         MyAPIGateway.TerminalControls.AddAction<IMyCameraBlock>(lockPosAction);
+
+        setFocusAction = MyAPIGateway.TerminalControls.CreateAction<IMyCameraBlock>("Camera_SetFocusToViewLock");
+        setFocusAction.Name = new StringBuilder("Set Focus to View Lock");
+        setFocusAction.Action = ActionSetFocusToViewLock;
+        setFocusAction.Writer = (b, sb) => { sb.Clear(); sb.Append("Focus"); };
+        MyAPIGateway.TerminalControls.AddAction<IMyCameraBlock>(setFocusAction);
+
+        rangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyCameraBlock>("Camera_FocusDistance");
+        rangeSlider.Title = MyStringId.GetOrCompute("Focus Distance");
+        rangeSlider.Tooltip = MyStringId.GetOrCompute("Focus distance. Important when camera is locked to a distant object.");
+        rangeSlider.SetLogLimits(1.0f, 100000.0f);
+        rangeSlider.SupportsMultipleBlocks = true;
+        rangeSlider.Getter = b => (float)SettingsStore.Get(b, "focus_distance", 1.0f);
+        rangeSlider.Setter = (b, v) => SettingsStore.Set(b, "focus_distance", (float)LogRound(v));
+        rangeSlider.Writer = (b, result) => result.Append(SettingsStore.Get(b, "focus_distance", 1.0f));
+        rangeSlider.Visible = BlockIsMyCamera;
+        MyAPIGateway.TerminalControls.AddControl<IMyCameraBlock>(rangeSlider);
 
         MyAPIGateway.TerminalControls.CustomActionGetter += GetCameraActions;
     }
