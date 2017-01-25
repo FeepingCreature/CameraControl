@@ -155,7 +155,7 @@ static class SettingsStore
             return;
         }
 
-        MyLog.Default.WriteLine(String.Format("DEBUG LOAD: {0}", serialized));
+        // MyLog.Default.WriteLine(String.Format("DEBUG LOAD: {0}", serialized));
 
         IEnumerable<string> lines = serialized.Split('\n');
         int num_ents = 0, num_settings = 0;
@@ -203,7 +203,7 @@ static class SettingsStore
         }
 
         var serialized = builder.ToString();
-        MyLog.Default.WriteLine(String.Format("DEBUG SAVE: {0}", serialized));
+        // MyLog.Default.WriteLine(String.Format("DEBUG SAVE: {0}", serialized));
         MyAPIGateway.Utilities.SetVariable(KeyName, serialized);
         // MyLog.Default.WriteLine("SettingsStore done saving.");
     }

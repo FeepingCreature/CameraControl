@@ -46,20 +46,34 @@ public class TrackingShot
 
     public int KeyframeNextSmallerThan(int frame)
     {
-        return Math.Max(
-            position_timeline.KeyframeNextSmallerThan(frame),
-            Math.Max(
-                lookat_timeline.KeyframeNextSmallerThan(frame),
-                upvec_timeline.KeyframeNextSmallerThan(frame)));
+        int pk = position_timeline.KeyframeNextSmallerThan(frame);
+        int lk = lookat_timeline.KeyframeNextSmallerThan(frame);
+        int uk = upvec_timeline.KeyframeNextSmallerThan(frame);
+
+        if (pk == frame && lk == frame && uk == frame) return frame;
+        if (pk == frame && lk == frame) return uk;
+        if (pk == frame && uk == frame) return lk;
+        if (lk == frame && uk == frame) return pk;
+        if (pk == frame) return Math.Max(lk, uk);
+        if (lk == frame) return Math.Max(pk, uk);
+        if (uk == frame) return Math.Max(pk, lk);
+        return Math.Max(pk, Math.Max(lk, uk));
     }
 
     public int KeyframeNextLargerThan(int frame)
     {
-        return Math.Min(
-            position_timeline.KeyframeNextLargerThan(frame),
-            Math.Min(
-                lookat_timeline.KeyframeNextLargerThan(frame),
-                upvec_timeline.KeyframeNextLargerThan(frame)));
+        int pk = position_timeline.KeyframeNextLargerThan(frame);
+        int lk = lookat_timeline.KeyframeNextLargerThan(frame);
+        int uk = upvec_timeline.KeyframeNextLargerThan(frame);
+
+        if (pk == frame && lk == frame && uk == frame) return frame;
+        if (pk == frame && lk == frame) return uk;
+        if (pk == frame && uk == frame) return lk;
+        if (lk == frame && uk == frame) return pk;
+        if (pk == frame) return Math.Min(lk, uk);
+        if (lk == frame) return Math.Min(pk, uk);
+        if (uk == frame) return Math.Min(pk, lk);
+        return Math.Min(pk, Math.Min(lk, uk));
     }
 
     public bool IsLastFrame(int frame)
