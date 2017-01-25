@@ -263,7 +263,7 @@ public class TrackingCamera : MyGameLogicComponent
         // wanted local mat: Target space -> Grid space
 
         var mat = MatrixD.CreateWorld(position, lookat - position, upvec) * MatrixD.Invert(proper_worldmat);
-        MyLog.Default.WriteLine(String.Format("lmat = {0}", mat));
+        // MyLog.Default.WriteLine(String.Format("lmat = {0}", mat));
 
         Entity.SetLocalMatrix(mat * OriginalLocalMatrix);
     }
@@ -427,13 +427,6 @@ public class TrackingCamera : MyGameLogicComponent
     }
 
     public void SetViewFrame()
-    {
-        var shot = Load();
-        SetLookatFrame(shot);
-        Save(shot);
-    }
-
-    public void SetPosFrame()
     {
         var shot = Load();
         SetLookatFrame(shot);
@@ -697,7 +690,10 @@ static class CameraUI
     public static void ActionSetPosFrame(IMyTerminalBlock block)
     {
         var cam = block.GameLogic.GetAs<TrackingCamera>();
-        cam.SetPosFrame();
+        var shot = cam.Load();
+        cam.SetPosFrame(shot);
+        cam.SetUpFrame(shot);
+        cam.Save(shot);
     }
 
     public static void ActionSetViewFrame(IMyTerminalBlock block)
