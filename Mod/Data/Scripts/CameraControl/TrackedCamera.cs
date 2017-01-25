@@ -86,18 +86,35 @@ public class TrackingShot
 public class FrameCaller : MySessionComponentBase
 {
     static List<MyGameLogicComponent> blocks = new List<MyGameLogicComponent>();
+    static bool iterating = false;
+    static List<MyGameLogicComponent> to_remove = new List<MyGameLogicComponent>();
 
     public override void UpdateBeforeSimulation()
     {
+        iterating = true;
         foreach (var block in blocks)
         {
             block.UpdateBeforeSimulation();
         }
+        foreach (var block in to_remove) blocks.Remove(block);
+        to_remove.Clear();
+        iterating = false;
     }
 
     public static void AddComponent(MyGameLogicComponent comp)
     {
         blocks.Add(comp);
+    }
+
+    public static void RmComponent(MyGameLogicComponent comp)
+    {
+        if (iterating)
+        {
+            to_remove.Add(comp);
+        }
+        else {
+            blocks.Remove(comp);
+        }
     }
 }
 
@@ -270,6 +287,11 @@ public class TrackingCamera : MyGameLogicComponent
 
     public override void UpdateBeforeSimulation()
     {
+        if (Entity == null)
+        {
+            FrameCaller.RmComponent(this);
+            return;
+        }
         if (!block_initialized) InitLate();
 
         if (view_locked)
